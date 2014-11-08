@@ -2,7 +2,7 @@
   "name": "xo-planet",
   "version": "0.0.1",
   "description": "A data visualization for extrasolar planets",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
     "start": "node index.js"
   },
