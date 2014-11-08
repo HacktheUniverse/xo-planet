@@ -111,17 +111,23 @@
       var nodes = [];
       var colorMap = {};
 
+      var canvas = d3.select("#collision")
+        .append("canvas")
+          .attr("width", width)
+          .attr("height", height)
+          .attr("style", "border:1px solid");
+
+      context = canvas.node().getContext("2d");
+      var context;
 
       var pushNode = function(){
           nodes.push(nodesBasket[nodeCount]);
+
           var nameDom = document.getElementById("name");
-          console.log(exoplanets[nodeCount]);
           nameDom.innerHTML = exoplanets[nodeCount]['name'];
+
           colorMap[nodeCount] = color(Math.random() * 10);
           nodeCount++;
-
-
-
           //console.log(nodes + nodes.length);
       }
 
@@ -141,16 +147,10 @@
 
       force.start();
 
-      var zoomHandle = d3.behavior.zoom()
-          .on("zoom", redraw);
 
-      var canvas = d3.select("#collision")
-        .append("canvas")
-          .attr("width", width)
-          .attr("height", height)
-          .attr("style", "border:1px solid");
 
-      var context = canvas.node().getContext("2d");
+
+
 
       function redraw() {
         console.log("redrawing to: " + scale);
@@ -168,6 +168,26 @@
         //console.log(nodes);
         for (i = 0; i < n; ++i) q.visit(collide(nodes[i]));
         context.clearRect(0, 0, width, height);
+        // draw sun comparison
+        context.beginPath();
+        context.arc(50, 120, exoplanets[nodeCount-1]['star_radius'] * 20, 0, 2 * Math.PI);
+        context.stroke();
+        // draw sun
+        context.beginPath();
+        context.arc(50, 50, 20, 0, 2 * Math.PI);
+        context.stroke();
+        // text
+        context.font = '11pt Josefin Sans';
+        context.beginPath();
+        context.fillStyle = colorMap[0];
+        context.fillText("Earth", width/2+10, height/2+10);
+        context.fill();
+        context.beginPath();
+        context.fillStyle = 'black';
+        context.fillText("Sun", 40, 55);
+        context.fill();
+
+
 
         for (i = 0; i < n; ++i) {
           context.beginPath();
@@ -181,11 +201,7 @@
           context.arc(d.x, d.y, d.radius, 0, 2 * Math.PI);
           context.fill();
         }
-        context.beginPath();
-        context.fillStyle = colorMap[0];
-        context.font = '10pt Calibri';
-        context.fillText("Earth", width/2+10, height/2+10);
-        context.fill();
+
       });
 
       canvas.on("mousemove", function() {
