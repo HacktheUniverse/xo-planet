@@ -1,7 +1,0 @@
-{
-  "name": "x o planet",
-  "description": "A data visualization for extrasolar planets",
-  "repository": "https://github.com/HacktheUniverse/xo-planet.git",
-  "logo": "",
-  "keywords": ["node", "express", "static"]
-}
