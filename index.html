@@ -37,9 +37,8 @@
 
   <div id="collision" style="padding:20px; text-align: center;"></div><br><br>
 
+  <div id="year" style="text-align: center; font-weight: bold"></div><br>
   <div id="name" style="text-align: center;"></div><br><br>
-
-
 
   <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.3.3/d3.min.js" type="text/javascript"></script>
   <script>
@@ -101,7 +100,9 @@
           height = 600,
           color = d3.scale.category10();
 
-      var nodesBasket = d3.range(120).map(function(i) { return {radius: exoplanets[i].radius*20 };});
+      var r_unit = 16;
+
+      var nodesBasket = d3.range(200).map(function(i) { return {radius: exoplanets[i].radius*r_unit };});
 
 
 
@@ -119,44 +120,36 @@
 
       context = canvas.node().getContext("2d");
       var context;
+      var force;
 
       var pushNode = function(){
           nodes.push(nodesBasket[nodeCount]);
 
+          var yearDom = document.getElementById("year");
+          if (exoplanets[nodeCount]['discovered'] > 0)
+            yearDom.innerHTML = exoplanets[nodeCount]['discovered'];
           var nameDom = document.getElementById("name");
           nameDom.innerHTML = exoplanets[nodeCount]['name'];
 
           colorMap[nodeCount] = color(Math.random() * 10);
           nodeCount++;
-          //console.log(nodes + nodes.length);
       }
 
       pushNode();
-      setInterval(function(){pushNode(); console.log("pushed");}, 1000);
+      setInterval(function(){pushNode();}, 1000);
 
       var root = nodes[0];
       root.x = width/2;
       root.y = height/2;
       root.fixed = true;
 
-      var force = d3.layout.force()
+      force = d3.layout.force()
           .gravity(0.01)
           .charge(function(d, i) { return i ? 0 : -100; })
           .nodes(nodesBasket)
           .size([width, height]);
 
       force.start();
-
-
-
-
-
-
-      function redraw() {
-        console.log("redrawing to: " + scale);
-        canvas.attr("transform",
-          "scale(" + scale + ")");
-      }
 
       force.on("tick", function(e) {
         context = canvas.node().getContext("2d");
@@ -165,29 +158,8 @@
             d,
             n = nodes.length;
 
-        //console.log(nodes);
         for (i = 0; i < n; ++i) q.visit(collide(nodes[i]));
         context.clearRect(0, 0, width, height);
-        // draw sun comparison
-        context.beginPath();
-        context.arc(50, 120, exoplanets[nodeCount-1]['star_radius'] * 20, 0, 2 * Math.PI);
-        context.stroke();
-        // draw sun
-        context.beginPath();
-        context.arc(50, 50, 20, 0, 2 * Math.PI);
-        context.stroke();
-        // text
-        context.font = '11pt Josefin Sans';
-        context.beginPath();
-        context.fillStyle = colorMap[0];
-        context.fillText("Earth", width/2+10, height/2+10);
-        context.fill();
-        context.beginPath();
-        context.fillStyle = 'black';
-        context.fillText("Sun", 40, 55);
-        context.fill();
-
-
 
         for (i = 0; i < n; ++i) {
           context.beginPath();
@@ -202,12 +174,33 @@
           context.fill();
         }
 
-      });
+        // draw sun comparison
+        context.beginPath();
+        context.arc(50, 120, exoplanets[nodeCount-1]['star_radius'] * 20, 0, 2 * Math.PI);
+        context.stroke();
+        // draw sun
+        context.beginPath();
+        context.arc(50, 50, r_unit, 0, 2 * Math.PI);
+        context.stroke();
+        // text
+        context.font = '11pt Josefin Sans';
+        context.beginPath();
+        context.fillStyle = colorMap[0];
+        context.fillText("Earth", width/2+10, height/2+10);
+        context.fill();
+        context.beginPath();
+        context.fillStyle = 'black';
+        context.fillText("Sun", 40, 55);
+        context.fill();
 
-      canvas.on("mousemove", function() {
-        var p1 = d3.mouse(this);
+
         force.resume();
       });
+
+      /*canvas.on("mousemove", function() {
+        var p1 = d3.mouse(this);
+        force.resume();
+      });*/
 
       function collide(node) {
         var r = node.radius + 40,
