@@ -37,12 +37,7 @@
 
   <div id="collision" style="padding:20px; text-align: center;"></div><br><br>
 
-  <div id="demoAddRandomAndResize" style="text-align: center;">
-
-    <div style="display:block;padding:20px">
-      <button class="add-data action-button">Add data</button>
-    </div>
-  </div><br><br>
+  <div id="name" style="text-align: center;"></div><br><br>
 
 
 
@@ -65,9 +60,6 @@
       }
     */
 
-    var format = d3.time.format("%a %b %d %Y")
-    var amountFn = function(d) { return d.amount }
-    var dateFn = function(d) { return format.parse(d.created_at) }
     var planetsPerYear = {0:0};
     var countPerYear = function(data) {
       for (var i = 0; i < data.length; i++){
@@ -100,63 +92,80 @@
     }
     xhr.send(null);
 
-
-
-    var planetsToNodes = function(){
-      var planets = [];
-      for (var i = 0; i < 10; i++){//exoplanets.length; i++){
-        planets.push({radius: exoplanets[i].radius*5});
-      }
-      return planets;
-    }
-
-
     var ready = function() {
 
 
     // BOX ONE.
 
-      var width = 500,
-          height = 500,
+      var width = 1000,
+          height = 600,
           color = d3.scale.category10();
 
-      var nodes = d3.range(10).map(function(i) { return {radius: exoplanets[i].radius*20 };});
+      var nodesBasket = d3.range(120).map(function(i) { return {radius: exoplanets[i].radius*20 };});
 
-      //d3.range(10).map(function() { return {radius: Math.random() * 12 + 20}; });
-      console.log(nodes);
-      console.log(planetsToNodes());
+
+
+      console.log(nodesBasket);
+
+      var nodeCount = 0;
+      var nodes = [];
+      var colorMap = {};
+
+
+      var pushNode = function(){
+          nodes.push(nodesBasket[nodeCount]);
+          var nameDom = document.getElementById("name");
+          console.log(exoplanets[nodeCount]);
+          nameDom.innerHTML = exoplanets[nodeCount]['name'];
+          colorMap[nodeCount] = color(Math.random() * 10);
+          nodeCount++;
+
+
+
+          //console.log(nodes + nodes.length);
+      }
+
+      pushNode();
+      setInterval(function(){pushNode(); console.log("pushed");}, 1000);
 
       var root = nodes[0];
       root.x = width/2;
       root.y = height/2;
       root.fixed = true;
-      var colorMap = {};
-      for (var i = 1; i < nodes.length; i++) {
-        colorMap[i] = color(Math.random() * 10);
-      }
-
 
       var force = d3.layout.force()
           .gravity(0.01)
-          .charge(function(d, i) { return i ? 20 : -200; })
-          .nodes(nodes)
+          .charge(function(d, i) { return i ? 0 : -100; })
+          .nodes(nodesBasket)
           .size([width, height]);
 
       force.start();
 
-      var canvas = d3.select("#collision").append("canvas")
+      var zoomHandle = d3.behavior.zoom()
+          .on("zoom", redraw);
+
+      var canvas = d3.select("#collision")
+        .append("canvas")
           .attr("width", width)
           .attr("height", height)
           .attr("style", "border:1px solid");
 
       var context = canvas.node().getContext("2d");
 
+      function redraw() {
+        console.log("redrawing to: " + scale);
+        canvas.attr("transform",
+          "scale(" + scale + ")");
+      }
+
       force.on("tick", function(e) {
+        context = canvas.node().getContext("2d");
         var q = d3.geom.quadtree(nodes),
             i,
             d,
             n = nodes.length;
 
+        //console.log(nodes);
         for (i = 0; i < n; ++i) q.visit(collide(nodes[i]));
         context.clearRect(0, 0, width, height);
 
@@ -164,22 +173,23 @@
           context.beginPath();
           d = nodes[i];
           context.moveTo(d.x, d.y);
-          context.fillStyle = colorMap[i];
+          if (i == nodeCount-1) {
+            context.fillStyle = 'black';
+          } else {
+            context.fillStyle = colorMap[i];
+          }
           context.arc(d.x, d.y, d.radius, 0, 2 * Math.PI);
           context.fill();
         }
         context.beginPath();
-        context.fillStyle = colorMap[i];
+        context.fillStyle = colorMap[0];
         context.font = '10pt Calibri';
         context.fillText("Earth", width/2+10, height/2+10);
         context.fill();
-
-
       });
 
       canvas.on("mousemove", function() {
         var p1 = d3.mouse(this);
-
         force.resume();
       });
 
@@ -206,75 +216,6 @@
           return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
         };
       }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      // BOX TWO
-
-
-      var data = JSONData.slice()
-      var x = d3.time.scale()
-        .range([10, 280])
-        .domain(d3.extent(data, dateFn))
-
-      var y = d3.scale.linear()
-       .range([180, 10])
-       .domain(d3.extent(data, amountFn))
-
-      var svg = d3.select("#demoAddRandomAndResize").append("svg:svg")
-       .attr("width", 300)
-       .attr("height", 200)
-
-      var start = d3.min(data, dateFn)
-      var end = d3.max(data, dateFn)
-
-      var refreshGraph = function() {
-
-      x.domain(d3.extent(data, dateFn))
-      y.domain(d3.extent(data, amountFn))
-
-      var circles = svg.selectAll("circle").data(data)
-
-      circles.transition()
-       .attr("cx", function(d) { return x(dateFn(d)) })
-       .attr("cy", function(d) { return y(amountFn(d)) })
-
-      circles.enter()
-       .append("svg:circle")
-       .attr("r", 4)
-       .attr("cx", function(d) { return x(dateFn(d)) })
-       .attr("cy", function(d) { return y(amountFn(d)) })
-       .on("click", function(d) {
-          d3.select("#demoAddRandomAndResize .value").text("Date: " + d.created_at + " amount: " + d.amount)
-       })
-
-      }
-
-      d3.selectAll("#demoAddRandomAndResize .add-data")
-        .on("click", function() {
-          var date = new Date(end.getTime() + Math.random() * (end.getTime() - start.getTime()))
-          obj = {
-            'id': Math.floor(Math.random()*70),
-            'amount': Math.floor(1000 + Math.random()*20001),
-            'created_at': date.toDateString()
-          }
-          data.push(obj)
-          refreshGraph()
-        })
-
-      refreshGraph()
-
 
     };
 
