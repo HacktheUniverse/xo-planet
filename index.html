@@ -1,79 +1,235 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="x o planet : Visualizing extrasolar planet data.">
+<head>
+  <title>xo-planet</title>
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
+</head>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+<body id="posts-show">
+  <style>
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+    }
+    svg {
+      vertical-align: middle;
+      background: rgba(255,255,255, 0.2);
+      box-shadow: inset 0 0 3px 0px #CECECE;
+    }
 
-    <title>x o planet</title>
-  </head>
+    svg circle {
+      stroke-width: 2px;
+      stroke: #79A32B;
+      fill: transparent;
+      cursor: pointer;
+    }
 
-  <body>
+    svg circle:active {
+      stroke: #45D3C7;
+    }
+  </style>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/HacktheUniverse/xo-planet">View on GitHub</a>
+  <br>
+  <br>
+  <div id="title" style="font-size:20px; text-align:center;">x o planet</div>
+  <br><br>
 
-          <h1 id="project_title">x o planet</h1>
-          <h2 id="project_tagline">Visualizing extrasolar planet data.</h2>
+  <div id="collision" style="padding:20px; text-align: center;"></div><br><br>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/HacktheUniverse/xo-planet/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/HacktheUniverse/xo-planet/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
+  <div id="year" style="text-align: center; font-weight: bold"></div><br>
+  <div id="name" style="text-align: center;"></div><br><br>
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.3.3/d3.min.js" type="text/javascript"></script>
+  <script>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+    // Sample data.
+    /*
+      {
+        "name":"HD 209458 b",
+        "mass":0.714,
+        "radius":1.38,
+        "discovered":1999,
+        "water":"1",
+        "star_name":"HD 209458",
+        "star_distance":47,
+        "star_mass":1.148,
+        "star_radius":1.146,
+        "star_age":4
+      }
+    */
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+    var planetsPerYear = {0:0};
+    var countPerYear = function(data) {
+      for (var i = 0; i < data.length; i++){
+        if (data[i].discovered in planetsPerYear) {
+          planetsPerYear[data[i].discovered]++;
+        } else if (data[i].discovered) {
+          planetsPerYear[data[i].discovered] = 1;
+        } else {
+          // Planets that don't have a year of discovery.
+          planetsPerYear[0]++;
+        }
+      }
+    }
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+    // Get data
+    var exoplanets;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET','exoplanet.json',true);
 
-<h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+    xhr.onload = function() {
+      if (this.readyState != 4) {
+        return;
+      }
+      exoplanets = JSON.parse(xhr.responseText);
+      console.log(exoplanets[0]);
+      countPerYear(exoplanets);
+      console.log(planetsPerYear);
+      JSONData = exoplanets;
+      ready();
+    }
+    xhr.send(null);
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+    var ready = function() {
 
-<h3>
-<a id="rather-drive-stick" class="anchor" href="#rather-drive-stick" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+    // BOX ONE.
 
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+      var width = 1000,
+          height = 600,
+          color = d3.scale.category10();
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+      var r_unit = 16;
 
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+      var nodesBasket = d3.range(200).map(function(i) { return {radius: exoplanets[i].radius*r_unit };});
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">x o planet maintained by <a href="https://github.com/HacktheUniverse">HacktheUniverse</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
 
-    
+      console.log(nodesBasket);
 
-  </body>
+      var nodeCount = 0;
+      var nodes = [];
+      var colorMap = {};
+
+      var canvas = d3.select("#collision")
+        .append("canvas")
+          .attr("width", width)
+          .attr("height", height)
+          .attr("style", "border:1px solid");
+
+      context = canvas.node().getContext("2d");
+      var context;
+      var force;
+
+      var pushNode = function(){
+          nodes.push(nodesBasket[nodeCount]);
+
+          var yearDom = document.getElementById("year");
+          if (exoplanets[nodeCount]['discovered'] > 0)
+            yearDom.innerHTML = exoplanets[nodeCount]['discovered'];
+          var nameDom = document.getElementById("name");
+          nameDom.innerHTML = exoplanets[nodeCount]['name'];
+
+          colorMap[nodeCount] = color(Math.random() * 10);
+          nodeCount++;
+      }
+
+      pushNode();
+      setInterval(function(){pushNode();}, 1000);
+
+      var root = nodes[0];
+      root.x = width/2;
+      root.y = height/2;
+      root.fixed = true;
+
+      force = d3.layout.force()
+          .gravity(0.01)
+          .charge(function(d, i) { return i ? 0 : -100; })
+          .nodes(nodesBasket)
+          .size([width, height]);
+
+      force.start();
+
+      force.on("tick", function(e) {
+        context = canvas.node().getContext("2d");
+        var q = d3.geom.quadtree(nodes),
+            i,
+            d,
+            n = nodes.length;
+
+        for (i = 0; i < n; ++i) q.visit(collide(nodes[i]));
+        context.clearRect(0, 0, width, height);
+
+        for (i = 0; i < n; ++i) {
+          context.beginPath();
+          d = nodes[i];
+          context.moveTo(d.x, d.y);
+          if (i == nodeCount-1) {
+            context.fillStyle = 'black';
+          } else {
+            context.fillStyle = colorMap[i];
+          }
+          context.arc(d.x, d.y, d.radius, 0, 2 * Math.PI);
+          context.fill();
+        }
+
+        // draw sun comparison
+        context.beginPath();
+        context.arc(50, 120, exoplanets[nodeCount-1]['star_radius'] * 20, 0, 2 * Math.PI);
+        context.stroke();
+        // draw sun
+        context.beginPath();
+        context.arc(50, 50, r_unit, 0, 2 * Math.PI);
+        context.stroke();
+        // text
+        context.font = '11pt Josefin Sans';
+        context.beginPath();
+        context.fillStyle = colorMap[0];
+        context.fillText("Earth", width/2+10, height/2+10);
+        context.fill();
+        context.beginPath();
+        context.fillStyle = 'black';
+        context.fillText("Sun", 40, 55);
+        context.fill();
+
+
+        force.resume();
+      });
+
+      /*canvas.on("mousemove", function() {
+        var p1 = d3.mouse(this);
+        force.resume();
+      });*/
+
+      function collide(node) {
+        var r = node.radius + 40,
+            nx1 = node.x - r,
+            nx2 = node.x + r,
+            ny1 = node.y - r,
+            ny2 = node.y + r;
+        return function(quad, x1, y1, x2, y2) {
+          if (quad.point && (quad.point !== node)) {
+            var x = node.x - quad.point.x,
+                y = node.y - quad.point.y,
+                l = Math.sqrt(x * x + y * y),
+                r = node.radius + quad.point.radius;
+            if (l < r) {
+              l = (l - r) / l * .5;
+              node.x -= x *= l;
+              node.y -= y *= l;
+              quad.point.x += x;
+              quad.point.y += y;
+            }
+          }
+          return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        };
+      }
+
+    };
+
+
+  </script>
+
+</body>
 </html>
