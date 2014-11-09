@@ -1,8 +1,7 @@
 xo-planet
 =========
 
-Link: http://10.20.12.122:8889/index.html
-FYI for the link to work you need to be on the Hack-the-Universe wifi network.
+Link: http://hacktheuniverse.github.io/xo-planet/
 
 Category: Visualization
 
@@ -14,4 +13,3 @@ A circle representing the planet (with the correct relative radius to Earth) app
 Planet data supplemented by:
 Data from: http://exoplanet.eu/catalog/all_fields/
 Making use of: http://d3js.org/
-
