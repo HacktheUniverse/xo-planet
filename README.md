@@ -3,6 +3,8 @@ xo-planet
 
 Link: http://hacktheuniverse.github.io/xo-planet/
 
+Demo from Hack the Universe presentation: http://youtu.be/lLIUGMDrXtk
+
 Category: Visualization
 
 Data visualization for exoplanets.
